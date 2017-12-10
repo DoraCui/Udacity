@@ -18,6 +18,7 @@ You can write helper functions for checking the data and writing the files, but 
 """
 import csv
 import pprint
+import re
 
 INPUT_FILE = 'autos.csv'
 OUTPUT_GOOD = 'autos-valid.csv'
@@ -30,20 +31,39 @@ def process_file(input_file, output_good, output_bad):
         header = reader.fieldnames
 
         #COMPLETE THIS FUNCTION
+        good_data = list()
+        bad_data = list()
+        year_pattern = re.compile('\d{4}')
 
-
+        for row in reader:
+            match = year_pattern.match(row['productionStartYear'])
+            if 'dbpedia.org' in row['URI']:
+                if match: # check if the field "productionStartYear" contains a year
+                    year = match.group()
+                    row['productionStartYear'] = int(year)
+                    if 1886 <= int(year) <= 2014: # check if the year is in range 1886-2014
+                        good_data.append(row)
+                    else:
+                        bad_data.append(row)
+                else:
+                    bad_data.append(row)
 
     # This is just an example on how you can use csv.DictWriter
     # Remember that you have to output 2 files
     with open(output_good, "w") as g:
         writer = csv.DictWriter(g, delimiter=",", fieldnames= header)
         writer.writeheader()
-        for row in YOURDATA:
+        for row in good_data:
+            writer.writerow(row)
+
+    with open(output_bad, "w") as g:
+        writer = csv.DictWriter(g, delimiter=",", fieldnames= header)
+        writer.writeheader()
+        for row in bad_data:
             writer.writerow(row)
 
 
 def test():
-
     process_file(INPUT_FILE, OUTPUT_GOOD, OUTPUT_BAD)
 
 
